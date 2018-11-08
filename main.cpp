@@ -69,6 +69,8 @@ int main(int argc, char *argv[])
 #ifndef QT_NO_OPENGL
 
     MainWidget widget;
+    widget.setFixedWidth(1080);
+    widget.setFixedHeight(720);
     widget.show();
 
 

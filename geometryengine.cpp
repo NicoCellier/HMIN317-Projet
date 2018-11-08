@@ -88,17 +88,15 @@ void GeometryEngine::initPlaneGeometry() {
 
     // Init vertices
     VertexData *vertices = new VertexData[nbV*nbV] ;
-    float x,y,z, a ;
+    float x, y, a ;
     x = -1.0f ;
     y = -1.0f ;
-    z = 0.0f ;
     a = 2.0f/nbV ;
     for (int i = 0; i < nbV; ++i) {
         x = -1.0f + i * a ;
-        z = 0 ;
         for (int j = 0; j < nbV; ++j) {
             y = -1.0f + j * a ;
-            vertices[i*nbV+j] = {QVector3D(x, y, z), QVector2D((1.0f/(nbV-1))*i, (1.0f/(nbV-1))*j)} ;
+            vertices[i*nbV+j] = {QVector3D(x, y, 0), QVector2D((1.0f/(nbV-1))*i, (1.0f/(nbV-1))*j)} ;
         }
     }
 

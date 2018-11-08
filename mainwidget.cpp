@@ -54,12 +54,19 @@
 
 #include <math.h>
 
+#include <iostream>
+
 MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
     geometries(0),
     texture(0),
-    cam(0.0,0.0,-5.0)
+    cam(0.0,0.0,-1.5),
+    camMove(0.0,0.0),
+    xMargin(50),
+    yMargin(40),
+    maxSpeed(0.025)
 {
+    setMouseTracking(true);
 }
 
 MainWidget::~MainWidget()
@@ -72,9 +79,58 @@ MainWidget::~MainWidget()
     doneCurrent();
 }
 
+void MainWidget::mousePressEvent(QMouseEvent *e)
+{
+    // Save mouse press position
+    mousePressPosition = QVector2D(e->localPos());
+    std::cout << "MousePosition " << mousePressPosition[0] << " " << mousePressPosition[1] << std::endl;
+}
+
+void MainWidget::mouseReleaseEvent(QMouseEvent *e)
+{
+    // Mouse release position - mouse press position
+    update();
+
+}
+//! [0]
+
+void MainWidget::mouseMoveEvent(QMouseEvent *e){
+    // Save mouse press position
+    mousePressPosition = QVector2D(e->localPos());
+
+    camMove = QVector2D(0, 0);
+    if(mousePressPosition[0] > this->width()-50){
+        camMove[0] = -0.1*1/(this->width()-mousePressPosition[0]);
+    }
+    else if(mousePressPosition[0] < 50){
+        camMove[0] = 0.1*1/(mousePressPosition[0]);
+    }
+
+    if(mousePressPosition[1] > this->height()-40){
+        camMove[1] = 0.1*1/(this->height()-mousePressPosition[1]);
+    }
+    else if(mousePressPosition[1] < 40){
+        camMove[1] = -0.1*1/(mousePressPosition[1]);
+    }
+
+    if(camMove[0] > maxSpeed)
+        camMove[0] = maxSpeed;
+    else if(camMove[0] < -maxSpeed)
+        camMove[0] = -maxSpeed;
+
+    if(camMove[1] > maxSpeed)
+        camMove[1] = maxSpeed;
+    else if(camMove[1] < -maxSpeed)
+        camMove[1] = -maxSpeed;
+
+    update();
+}
+
 //! [1]
 void MainWidget::timerEvent(QTimerEvent *)
 {
+    cam[0] += camMove[0];
+    cam[1] += camMove[1];
     // Request an update
     update();
 }
@@ -100,8 +156,7 @@ void MainWidget::initializeGL()
     geometries = new GeometryEngine;
 
     // Use QBasicTimer because its faster than QTimer
-    //timer.start(this);
-
+    timer.start(10, this);
 
 }
 
@@ -171,9 +226,7 @@ void MainWidget::paintGL()
 //! [6]
     // Calculate model view transformation
     QMatrix4x4 matrix;
-    matrix.translate(0.0, 0.0, -5.0);
-    QQuaternion framing = QQuaternion::fromAxisAndAngle(QVector3D(1,0,0),0);
-    matrix.rotate(framing);
+    matrix.translate(cam[0], cam[1], cam[2]);
 
     // Set modelview-projection matrix
     program.setUniformValue("mvp_matrix", projection * matrix);

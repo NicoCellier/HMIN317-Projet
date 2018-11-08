@@ -74,6 +74,9 @@ public:
 
 protected:
     void timerEvent(QTimerEvent *e) override;
+    void mousePressEvent(QMouseEvent *e) ;
+    void mouseMoveEvent(QMouseEvent *e) ;
+    void mouseReleaseEvent(QMouseEvent *e);
 
     void initializeGL() override;
     void resizeGL(int w, int h) override;
@@ -92,7 +95,14 @@ private:
     QMatrix4x4 projection;
 
     QVector2D mousePressPosition;
-    QVector3D cam ;
+    QVector3D cam;
+    QVector2D camMove;
+
+    // Window movement
+    int xMargin;
+    int yMargin;
+    float maxSpeed;
+
 };
 
 #endif // MAINWIDGET_H
