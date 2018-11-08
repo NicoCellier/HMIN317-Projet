@@ -48,33 +48,51 @@
 **
 ****************************************************************************/
 
-#include <QApplication>
-#include <QLabel>
-#include <QSurfaceFormat>
+#ifndef MAINWIDGET_H
+#define MAINWIDGET_H
 
-#ifndef QT_NO_OPENGL
-#include "mainwidget.h"
-#endif
+#include "geometryengine.h"
 
-int main(int argc, char *argv[])
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions>
+#include <QMatrix4x4>
+#include <QQuaternion>
+#include <QVector2D>
+#include <QBasicTimer>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
+
+class GeometryEngine;
+
+class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
-    QApplication app(argc, argv);
+    Q_OBJECT
 
-    QSurfaceFormat format;
-    format.setDepthBufferSize(24);
-    QSurfaceFormat::setDefaultFormat(format);
+public:
+    explicit MainWidget(QWidget *parent = 0);
+    ~MainWidget();
 
-    app.setApplicationName("Projet");
-    app.setApplicationVersion("0.1");
-#ifndef QT_NO_OPENGL
+protected:
+    void timerEvent(QTimerEvent *e) override;
 
-    MainWidget widget;
-    widget.show();
+    void initializeGL() override;
+    void resizeGL(int w, int h) override;
+    void paintGL() override;
 
+    void initShaders();
+    void initTextures();
 
-#else
-    QLabel note("OpenGL Support required");
-    note.show();
-#endif
-    return app.exec();
-}
+private:
+    QBasicTimer timer;
+    QOpenGLShaderProgram program;
+    GeometryEngine *geometries;
+
+    QOpenGLTexture *texture;
+
+    QMatrix4x4 projection;
+
+    QVector2D mousePressPosition;
+    QVector3D cam ;
+};
+
+#endif // MAINWIDGET_H

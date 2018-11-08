@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -23,12 +23,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 
+SOURCES += main.cpp
+
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp
+    mainwidget.cpp \
+    geometryengine.cpp
 
 HEADERS += \
-        mainwindow.h
+    mainwidget.h \
+    geometryengine.h
 
-FORMS += \
-        mainwindow.ui
+RESOURCES += \
+    shaders.qrc \
+    textures.qrc
