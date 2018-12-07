@@ -51,7 +51,8 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 
-#include "geometryengine.h"
+#include "terrain.h"
+#include "megaman.h"
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
@@ -62,7 +63,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 
-class GeometryEngine;
+class Terrain;
 
 class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -88,9 +89,12 @@ protected:
 private:
     QBasicTimer timer;
     QOpenGLShaderProgram program;
-    GeometryEngine *geometries;
 
-    QOpenGLTexture *texture;
+    Terrain *geometries;
+    Megaman *megaman;
+
+    QOpenGLTexture *grassTexture;
+    QOpenGLTexture *megamanTexture;
 
     QMatrix4x4 projection;
 

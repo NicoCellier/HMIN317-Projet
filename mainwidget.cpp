@@ -59,7 +59,9 @@
 MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
     geometries(0),
-    texture(0),
+    megaman(0),
+    grassTexture(0),
+    megamanTexture(0),
     cam(0.0,0.0,-1.5),
     camMove(0.0,0.0),
     xMargin(50),
@@ -74,8 +76,10 @@ MainWidget::~MainWidget()
     // Make sure the context is current when deleting the texture
     // and the buffers.
     makeCurrent();
-    delete texture;
+    delete grassTexture;
+    delete megamanTexture;
     delete geometries;
+    delete megaman;
     doneCurrent();
 }
 
@@ -153,7 +157,8 @@ void MainWidget::initializeGL()
     glEnable(GL_CULL_FACE);
 //! [2]
 
-    geometries = new GeometryEngine;
+    geometries = new Terrain;
+    megaman = new Megaman("../HMIN317-Projet/megaman.png", QVector2D(-0.5, -0.5));
 
     // Use QBasicTimer because its faster than QTimer
     timer.start(10, this);
@@ -184,18 +189,25 @@ void MainWidget::initShaders()
 //! [4]
 void MainWidget::initTextures()
 {
-    // Load cube.png image
-    texture = new QOpenGLTexture(QImage("../HMIN317-Projet/cube.png"));
-
+    // Load grass.png image
+    grassTexture = new QOpenGLTexture(QImage("../HMIN317-Projet/grass.png"));
     // Set nearest filtering mode for texture minification
-    texture->setMinificationFilter(QOpenGLTexture::Nearest);
-
+    grassTexture->setMinificationFilter(QOpenGLTexture::Nearest);
     // Set bilinear filtering mode for texture magnification
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-
+    grassTexture->setMagnificationFilter(QOpenGLTexture::Linear);
     // Wrap texture coordinates by repeating
     // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
-    texture->setWrapMode(QOpenGLTexture::Repeat);
+    grassTexture->setWrapMode(QOpenGLTexture::Repeat);
+
+
+    // Load megaman.png image
+    megamanTexture = new QOpenGLTexture(QImage("../HMIN317-Projet/megaman.png"));
+    // Set nearest filtering mode for texture minification
+    megamanTexture->setMinificationFilter(QOpenGLTexture::Nearest);
+    // Set bilinear filtering mode for texture magnification
+    megamanTexture->setMagnificationFilter(QOpenGLTexture::Linear);
+    // Wrap texture coordinates by repeating
+    megamanTexture->setWrapMode(QOpenGLTexture::Repeat);
 }
 //! [4]
 
@@ -206,7 +218,7 @@ void MainWidget::resizeGL(int w, int h)
     qreal aspect = qreal(w) / qreal(h ? h : 1);
 
     // Set near plane to 3.0, far plane to 7.0, field of view 45 degrees
-    const qreal zNear = 1.0, zFar = 10.0, fov = 45.0;
+    const qreal zNear = 1.0, zFar = 50.0, fov = 45.0;
 
     // Reset projection
     projection.setToIdentity();
@@ -221,19 +233,26 @@ void MainWidget::paintGL()
     // Clear color and depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    texture->bind();
+    grassTexture->bind(0);
+    // Use texture unit 0 which contains grass.png
+    program.setUniformValue("texture", 0);
+    // Draw the terrain
+    geometries->draw(&program);
+
+    megamanTexture->bind(1);
+    program.setUniformValue("texture", 1);
+    megaman->draw(&program);
+
 
 //! [6]
     // Calculate model view transformation
     QMatrix4x4 matrix;
-    matrix.translate(cam[0], cam[1], cam[2]);
+    // Uncomment this to be able to move with the mouse
+    //matrix.translate(cam[0], cam[1], cam[2]);
+    // So that Y+ is upwards and the images are on their head...
+    matrix.rotate(180, 0, 0, 1);
+    matrix.translate(0, 0, -20.0f);
 
     // Set modelview-projection matrix
     program.setUniformValue("mvp_matrix", projection * matrix);
-
-    // Use texture unit 0 which contains cube.png
-    program.setUniformValue("texture", 0);
-
-    // Draw plane geometry
-    geometries->drawPlaneGeometry(&program);
 }

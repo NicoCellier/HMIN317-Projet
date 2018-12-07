@@ -48,11 +48,13 @@
 **
 ****************************************************************************/
 
-#include "geometryengine.h"
+#include "terrain.h"
 
 #include <QVector2D>
 #include <QVector3D>
 #include <QImage>
+
+#include <iostream>
 
 struct VertexData
 {
@@ -61,8 +63,9 @@ struct VertexData
 };
 
 //! [0]
-GeometryEngine::GeometryEngine()
-    : indexBuf(QOpenGLBuffer::IndexBuffer)
+Terrain::Terrain() :
+    indexBuf(QOpenGLBuffer::IndexBuffer),
+    nbOfVertices(0)
 {
     initializeOpenGLFunctions();
 
@@ -70,66 +73,64 @@ GeometryEngine::GeometryEngine()
     arrayBuf.create();
     indexBuf.create();
 
-    // Initializes cube geometry and transfers it to VBOs
+    // Number of vertices in the rendering
+    nbOfVertices = 24;
 
-    initPlaneGeometry();
+    // Initializes cube geometry and transfers it to VBOs
+    init();
 }
 
-GeometryEngine::~GeometryEngine()
+Terrain::~Terrain()
 {
     arrayBuf.destroy();
     indexBuf.destroy();
 }
 //! [0]
 
-void GeometryEngine::initPlaneGeometry() {
-
-    int nbV = 24 ; // nb VertexByRow or Column
+void Terrain::init() {
+    float startingPoint = 10.f;
 
     // Init vertices
-    VertexData *vertices = new VertexData[nbV*nbV] ;
-    float x, y, a ;
-    x = -1.0f ;
-    y = -1.0f ;
-    a = 2.0f/nbV ;
-    for (int i = 0; i < nbV; ++i) {
-        x = -1.0f + i * a ;
-        for (int j = 0; j < nbV; ++j) {
-            y = -1.0f + j * a ;
-            vertices[i*nbV+j] = {QVector3D(x, y, 0), QVector2D((1.0f/(nbV-1))*i, (1.0f/(nbV-1))*j)} ;
+    VertexData *vertices = new VertexData[nbOfVertices*nbOfVertices];
+    float x, y, step;
+    step = startingPoint*2/nbOfVertices;
+    for (int i = 0; i < nbOfVertices; ++i) {
+        x = -startingPoint + i * step ;
+        for (int j = 0; j < nbOfVertices; ++j) {
+            y = -startingPoint + j * step;
+            vertices[i*nbOfVertices+j] = {QVector3D(x, y, 0), QVector2D((1.0f/(nbOfVertices-1))*i, (1.0f/(nbOfVertices-1))*j)};
+            std::cout << "Vertex position: (" << x << ", " << y << ")" << std::endl;
         }
     }
 
-    GLushort indices[(nbV-1)*(nbV*2+4)];
-    for (int i=0;i<nbV-1;i++)
+    GLushort indices[(nbOfVertices-1)*(nbOfVertices*2+4)];
+    for (int i=0;i<nbOfVertices-1;i++)
         {
-            indices[(nbV*2+4)*i] = nbV*i;
-            indices[(nbV*2+4)*i+1] = nbV*i;
+            indices[(nbOfVertices*2+4)*i] = nbOfVertices*i;
+            indices[(nbOfVertices*2+4)*i+1] = nbOfVertices*i;
 
-            for (int j=2;j<(nbV*2+2);j+=2)
+            for (int j=2;j<(nbOfVertices*2+2);j+=2)
                 {
-                    indices[(nbV*2+4)*i+j] = nbV*i +(j-2)/2;
-                    indices[(nbV*2+4)*i+j+1] = nbV*(i+1) + (j-2)/2;
+                    indices[(nbOfVertices*2+4)*i+j] = nbOfVertices*i +(j-2)/2;
+                    indices[(nbOfVertices*2+4)*i+j+1] = nbOfVertices*(i+1) + (j-2)/2;
                 }
 
-            indices[(nbV*2+4)*i+(nbV*2+2)] = nbV*(i+1) + nbV-1;
-            indices[(nbV*2+4)*i+(nbV*2+3)] = nbV*(i+1) + nbV-1;
+            indices[(nbOfVertices*2+4)*i+(nbOfVertices*2+2)] = nbOfVertices*(i+1) + nbOfVertices-1;
+            indices[(nbOfVertices*2+4)*i+(nbOfVertices*2+3)] = nbOfVertices*(i+1) + nbOfVertices-1;
     }
 
     // Transfer vertex data to VBO 0
     arrayBuf.bind();
-    arrayBuf.allocate(vertices, nbV*nbV * sizeof(VertexData));
+    arrayBuf.allocate(vertices, nbOfVertices*nbOfVertices * sizeof(VertexData));
 
     // Transfer index data to VBO 1
     indexBuf.bind();
-    indexBuf.allocate(indices, (nbV-1)*(nbV*2+4) * sizeof(GLushort));
+    indexBuf.allocate(indices, (nbOfVertices-1)*(nbOfVertices*2+4) * sizeof(GLushort));
 
 }
 
-void GeometryEngine::drawPlaneGeometry(QOpenGLShaderProgram *program)
+void Terrain::draw(QOpenGLShaderProgram *program)
 {
-
-    int nbV = 64 ;
     // Tell OpenGL which VBOs to use
     arrayBuf.bind();
     indexBuf.bind();
@@ -152,5 +153,5 @@ void GeometryEngine::drawPlaneGeometry(QOpenGLShaderProgram *program)
 
     // Draw cube geometry using indices from VBO 1
 
-    glDrawElements(GL_TRIANGLE_STRIP,(nbV-1)*(nbV*2+4), GL_UNSIGNED_SHORT, 0);
+    glDrawElements(GL_TRIANGLE_STRIP,(nbOfVertices-1)*(nbOfVertices*2+4), GL_UNSIGNED_SHORT, 0);
 }

@@ -55,19 +55,21 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
 
-class GeometryEngine : protected QOpenGLFunctions
+class Terrain : protected QOpenGLFunctions
 {
 public:
-    GeometryEngine();
-    virtual ~GeometryEngine();
+    Terrain();
+    virtual ~Terrain();
 
-    void drawPlaneGeometry(QOpenGLShaderProgram *program);
+    void draw(QOpenGLShaderProgram *program);
 
 private:
-    void initPlaneGeometry();
+    void init();
 
     QOpenGLBuffer arrayBuf;
     QOpenGLBuffer indexBuf;
+
+    int nbOfVertices;
 };
 
 #endif // GEOMETRYENGINE_H
