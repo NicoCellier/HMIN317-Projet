@@ -63,9 +63,8 @@ struct VertexData
 };
 
 //! [0]
-Terrain::Terrain() :
-    indexBuf(QOpenGLBuffer::IndexBuffer),
-    nbOfVertices(0)
+Terrain::Terrain(int w, int h) :
+    indexBuf(QOpenGLBuffer::IndexBuffer)
 {
     initializeOpenGLFunctions();
 
@@ -73,8 +72,9 @@ Terrain::Terrain() :
     arrayBuf.create();
     indexBuf.create();
 
-    // Number of vertices in the rendering
-    nbOfVertices = 24;
+    // The terrain's size
+    width = w;
+    height = h;
 
     // Initializes cube geometry and transfers it to VBOs
     init();
@@ -88,36 +88,17 @@ Terrain::~Terrain()
 //! [0]
 
 void Terrain::init() {
-    float startingPoint = 10.f;
+    nbOfVertices = 2;
 
     // Init vertices
-    VertexData *vertices = new VertexData[nbOfVertices*nbOfVertices];
-    float x, y, step;
-    step = startingPoint*2/nbOfVertices;
-    for (int i = 0; i < nbOfVertices; ++i) {
-        x = -startingPoint + i * step ;
-        for (int j = 0; j < nbOfVertices; ++j) {
-            y = -startingPoint + j * step;
-            vertices[i*nbOfVertices+j] = {QVector3D(x, y, 0), QVector2D((1.0f/(nbOfVertices-1))*i, (1.0f/(nbOfVertices-1))*j)};
-            std::cout << "Vertex position: (" << x << ", " << y << ")" << std::endl;
-        }
-    }
+    VertexData *vertices = new VertexData[nbOfVertices*nbOfVertices] ;
 
-    GLushort indices[(nbOfVertices-1)*(nbOfVertices*2+4)];
-    for (int i=0;i<nbOfVertices-1;i++)
-        {
-            indices[(nbOfVertices*2+4)*i] = nbOfVertices*i;
-            indices[(nbOfVertices*2+4)*i+1] = nbOfVertices*i;
+    vertices[0] = {QVector3D(-width/2, -height/2, 0) , QVector2D(0, 0)} ;
+    vertices[1] = {QVector3D(-width/2, height/2, 0) , QVector2D(0, 1)} ;
+    vertices[2] = {QVector3D(width/2, -height/2, 0) , QVector2D(1, 0)} ;
+    vertices[3] = {QVector3D(width/2, height/2, 0) , QVector2D(1, 1)} ;
 
-            for (int j=2;j<(nbOfVertices*2+2);j+=2)
-                {
-                    indices[(nbOfVertices*2+4)*i+j] = nbOfVertices*i +(j-2)/2;
-                    indices[(nbOfVertices*2+4)*i+j+1] = nbOfVertices*(i+1) + (j-2)/2;
-                }
-
-            indices[(nbOfVertices*2+4)*i+(nbOfVertices*2+2)] = nbOfVertices*(i+1) + nbOfVertices-1;
-            indices[(nbOfVertices*2+4)*i+(nbOfVertices*2+3)] = nbOfVertices*(i+1) + nbOfVertices-1;
-    }
+    GLushort indices[] = { 2, 1, 0, 2, 1, 3 };
 
     // Transfer vertex data to VBO 0
     arrayBuf.bind();
@@ -125,8 +106,7 @@ void Terrain::init() {
 
     // Transfer index data to VBO 1
     indexBuf.bind();
-    indexBuf.allocate(indices, (nbOfVertices-1)*(nbOfVertices*2+4) * sizeof(GLushort));
-
+    indexBuf.allocate(indices, 6 * sizeof(GLushort));
 }
 
 void Terrain::draw(QOpenGLShaderProgram *program)

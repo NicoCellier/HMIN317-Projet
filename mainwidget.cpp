@@ -157,7 +157,7 @@ void MainWidget::initializeGL()
     glEnable(GL_CULL_FACE);
 //! [2]
 
-    geometries = new Terrain;
+    geometries = new Terrain(20, 20);
     megaman = new Megaman("../HMIN317-Projet/megaman.png", QVector2D(-0.5, -0.5));
 
     // Use QBasicTimer because its faster than QTimer

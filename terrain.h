@@ -58,7 +58,7 @@
 class Terrain : protected QOpenGLFunctions
 {
 public:
-    Terrain();
+    Terrain(int w, int height);
     virtual ~Terrain();
 
     void draw(QOpenGLShaderProgram *program);
@@ -69,7 +69,10 @@ private:
     QOpenGLBuffer arrayBuf;
     QOpenGLBuffer indexBuf;
 
+    // 2
     int nbOfVertices;
+    int width;
+    int height;
 };
 
 #endif // GEOMETRYENGINE_H
