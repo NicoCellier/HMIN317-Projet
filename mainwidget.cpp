@@ -60,7 +60,7 @@ MainWidget::MainWidget(QWidget *parent) :
     megaman(0),
     grassTexture(0),
     megamanTexture(0),
-    cam(0.0,0.0,-25),
+    cam(0.0,0.0,-20),
     camMove(0.0,0.0),
     xMargin(50),
     yMargin(40),
@@ -98,7 +98,8 @@ void MainWidget::mousePressEvent(QMouseEvent *e)
     // Save mouse press position
     mousePressPosition = QVector2D(e->localPos());
     //std::cout << "MousePosition " << mousePressPosition[0] << " " << mousePressPosition[1] << std::endl;
-    megaman = new Megaman("../HMIN317-Projet/megaman.png", getWorldCoordinates(mousePressPosition));
+    //megaman = new Megaman("../HMIN317-Projet/megaman.png", getWorldCoordinates(mousePressPosition));
+    megaman->moveTo(getWorldCoordinates(mousePressPosition));
 }
 
 void MainWidget::mouseReleaseEvent(QMouseEvent *e)
@@ -122,10 +123,10 @@ void MainWidget::mouseMoveEvent(QMouseEvent *e){
     }
 
     if(mousePressPosition[1] > this->height()-40){
-        camMove[1] = 0.1*1/(this->height()-mousePressPosition[1]);
+        camMove[1] = -0.1*1/(this->height()-mousePressPosition[1]);
     }
     else if(mousePressPosition[1] < 40){
-        camMove[1] = -0.1*1/(mousePressPosition[1]);
+        camMove[1] = 0.1*1/(mousePressPosition[1]);
     }
 
     if(camMove[0] > maxSpeed)
@@ -168,8 +169,8 @@ void MainWidget::initializeGL()
     glEnable(GL_CULL_FACE);
 //! [2]
 
-    geometries = new Terrain(20, 20);
-    megaman = new Megaman("../HMIN317-Projet/megaman.png", QVector2D(2, 2));
+    geometries = new Terrain(40, 40);
+    megaman = new Megaman("../HMIN317-Projet/megaman.png", QVector2D(0, 0));
 
     // Use QBasicTimer because its faster than QTimer
     timer.start(10, this);
@@ -258,7 +259,7 @@ void MainWidget::paintGL()
     // Calculate model view transformation
     model = QMatrix4x4();
     // So that Y+ is upwards and the images are on their head...
-    //model.rotate(180, 0, 0, 1);
+    model.rotate(180, 0, 0, 1);
     model.translate(cam[0], cam[1], cam[2]);
 
     // Set modelview-projection matrix

@@ -1,6 +1,5 @@
 #include "megaman.h"
 
-
 #include <QVector2D>
 #include <QVector3D>
 #include <QImage>
@@ -26,11 +25,9 @@ Megaman::Megaman(QString path, QVector2D spawnPosition) :
 
     position = spawnPosition;
 
-    //std::cout << "Spawning at " << position[0] << ", " << position[1] << std::endl;
-
     // Initializes cube geometry and transfers it to VBOs
 
-    init();
+    updatePosition();
 }
 
 Megaman::~Megaman()
@@ -38,9 +35,24 @@ Megaman::~Megaman()
     arrayBuf.destroy();
     indexBuf.destroy();
 }
-//! [0]
 
-void Megaman::init() {
+void Megaman::moveTo(QVector2D destination){
+    this->destination = destination;
+    timer.start(1, this);
+}
+
+void Megaman::timerEvent(QTimerEvent *)
+{
+    if((this->destination - this->position).length() > 0.01f){
+        this->position = this->position + (this->destination - this->position).normalized() * 0.02f;
+        updatePosition();
+    }
+    else{
+        timer.stop();
+    }
+}
+
+void Megaman::updatePosition() {
     int nbV = 2; // nb VertexByRow or Column
 
     // Init vertices
