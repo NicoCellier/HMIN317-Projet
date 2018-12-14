@@ -86,6 +86,9 @@ protected:
     void initShaders();
     void initTextures();
     QVector2D getWorldCoordinates(QVector2D viewportCoordinates);
+    QVector2D getWorldCoordinatesByRayCast(QVector2D viewportCoordinates);
+    QVector3D Raycast(int mouse_x, int mouse_y);
+    QVector3D RayPlaneIntersection(QVector3D ray_origin, QVector3D ray_direction, QVector3D plane_origin, QVector3D plane_normal);
 
 private:
     QBasicTimer timer;

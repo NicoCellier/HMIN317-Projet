@@ -98,7 +98,49 @@ void MainWidget::mousePressEvent(QMouseEvent *e)
     // Save mouse press position
     mousePressPosition = QVector2D(e->localPos());
     //std::cout << "MousePosition " << mousePressPosition[0] << " " << mousePressPosition[1] << std::endl;
-    megaman = new Megaman("../HMIN317-Projet/megaman.png", getWorldCoordinates(mousePressPosition));
+    //megaman = new Megaman("../HMIN317-Projet/megaman.png", getWorldCoordinates(mousePressPosition));
+    megaman = new Megaman("../HMIN317-Projet/megaman.png", getWorldCoordinatesByRayCast(mousePressPosition));
+}
+
+QVector3D MainWidget::Raycast(int mouse_x, int mouse_y)
+{
+    QMatrix4x4 view_matrix ;
+    view_matrix.translate(cam[0], cam[1], cam[2]);
+    // Set modelview-projection matrix
+    program.setUniformValue("mvp_matrix", projection * view_matrix);
+
+    // Normalized Device Coordinates
+    float x = (2.0f * mouse_x) / this->width() - 1.0f;
+    float y = 1.0f - (2.0f * mouse_y) / this->height();
+    float z = 1.0f;
+    QVector3D normalized_device_coordinates_ray = QVector3D(x, y, z);
+
+    // Homogeneous Clip Coordinates
+    QVector4D homogeneous_clip_coordinates_ray = QVector4D(normalized_device_coordinates_ray.x(), normalized_device_coordinates_ray.y(), -1.0f, 1.0f);
+
+    // 4D Eye (Camera) Coordinates
+    QVector4D camera_ray = projection.inverted() * homogeneous_clip_coordinates_ray;
+    camera_ray = QVector4D(camera_ray.x(), camera_ray.y(), -1.0f, 0.0f);
+
+    // 4D World Coordinates
+    QVector3D world_coordinates_ray =(QVector3D) (view_matrix.inverted() * camera_ray);
+    world_coordinates_ray.normalize();
+
+    return world_coordinates_ray;
+}
+
+QVector3D MainWidget::RayPlaneIntersection(QVector3D ray_origin, QVector3D ray_direction, QVector3D plane_origin, QVector3D plane_normal)
+{
+    float denominator = QVector3D::dotProduct(plane_origin, -plane_normal);
+    float t = -(denominator + ray_origin.z() * plane_normal.z() + ray_origin.y() * plane_normal.y() + ray_origin.x() * plane_normal.x()) / (ray_direction.z() * plane_normal.z() + ray_direction.y() * plane_normal.y() + ray_direction.x() * plane_normal.x());
+    return ray_origin + t * ray_direction;
+}
+
+QVector2D MainWidget::getWorldCoordinatesByRayCast(QVector2D viewportCoordinates)
+{
+    QVector3D ray = Raycast(viewportCoordinates[0],viewportCoordinates[1]);
+    QVector3D pos = RayPlaneIntersection(cam, ray, QVector3D(0,0,0), QVector3D(0,0,-1));
+    return QVector2D(-pos.x(), -pos.y());
 }
 
 void MainWidget::mouseReleaseEvent(QMouseEvent *e)
