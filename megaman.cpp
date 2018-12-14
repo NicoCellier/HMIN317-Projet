@@ -26,7 +26,7 @@ Megaman::Megaman(QString path, QVector2D spawnPosition) :
 
     position = spawnPosition;
 
-    std::cout << "Spawning at " << position[0] << ", " << position[1] << std::endl;
+    //std::cout << "Spawning at " << position[0] << ", " << position[1] << std::endl;
 
     // Initializes cube geometry and transfers it to VBOs
 
@@ -41,21 +41,19 @@ Megaman::~Megaman()
 //! [0]
 
 void Megaman::init() {
-
     int nbV = 2; // nb VertexByRow or Column
 
     // Init vertices
     VertexData *vertices = new VertexData[nbV*nbV];
-    float x, y, a;
-    x = -1.0f;
-    y = -1.0f;
-    a = 2.0f/nbV;
+    float baseX, baseY, spriteDim, x, y;
+    spriteDim = 2.0f/nbV;
+    baseX = position[0] - spriteDim/2;
+    baseY = position[1] - spriteDim/2;
     for (int i = 0; i < nbV; ++i) {
-        x = position[0] + i * a;
+        x = baseX + i * spriteDim;
         for (int j = 0; j < nbV; ++j) {
-            y = position[1] + j * a;
+            y = baseY + j * spriteDim;
             vertices[i*nbV+j] = {QVector3D(x, y, 0.1f), QVector2D((1.0f/(nbV-1))*i, (1.0f/(nbV-1))*j)};
-            std::cout << "Vertex position: (" << x << ", " << y << ")" << std::endl;
         }
     }
 

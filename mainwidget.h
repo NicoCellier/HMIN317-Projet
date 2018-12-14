@@ -85,6 +85,7 @@ protected:
 
     void initShaders();
     void initTextures();
+    QVector2D getWorldCoordinates(QVector2D viewportCoordinates);
 
 private:
     QBasicTimer timer;
@@ -97,6 +98,7 @@ private:
     QOpenGLTexture *megamanTexture;
 
     QMatrix4x4 projection;
+    QMatrix4x4 model;
 
     QVector2D mousePressPosition;
     QVector3D cam;
@@ -106,7 +108,6 @@ private:
     int xMargin;
     int yMargin;
     float maxSpeed;
-
 };
 
 #endif // MAINWIDGET_H

@@ -49,11 +49,9 @@
 ****************************************************************************/
 
 #include "mainwidget.h"
-
 #include <QMouseEvent>
-
+#include <QDebug>
 #include <math.h>
-
 #include <iostream>
 
 MainWidget::MainWidget(QWidget *parent) :
@@ -62,7 +60,7 @@ MainWidget::MainWidget(QWidget *parent) :
     megaman(0),
     grassTexture(0),
     megamanTexture(0),
-    cam(0.0,0.0,-1.5),
+    cam(0.0,0.0,-25),
     camMove(0.0,0.0),
     xMargin(50),
     yMargin(40),
@@ -83,11 +81,24 @@ MainWidget::~MainWidget()
     doneCurrent();
 }
 
+QVector2D MainWidget::getWorldCoordinates(QVector2D viewportCoordinates){
+    // Get the viewport
+    QRect viewport = QRect(0, 0, width(), height());
+    // We need to find the good ratio for the far vector (takes into account the camera Z I guess)
+    QVector3D Z = Z.project(model, projection, viewport);
+    // Compute the far vector witht the above computed z
+    QVector3D far = QVector3D(viewportCoordinates[0], height() - viewportCoordinates[1], Z.z());
+    // Compute the world coordinates
+    QVector3D worldPosition = far.unproject(model, projection, viewport);
+    return QVector2D(worldPosition[0], worldPosition[1]);
+}
+
 void MainWidget::mousePressEvent(QMouseEvent *e)
 {
     // Save mouse press position
     mousePressPosition = QVector2D(e->localPos());
-    std::cout << "MousePosition " << mousePressPosition[0] << " " << mousePressPosition[1] << std::endl;
+    //std::cout << "MousePosition " << mousePressPosition[0] << " " << mousePressPosition[1] << std::endl;
+    megaman = new Megaman("../HMIN317-Projet/megaman.png", getWorldCoordinates(mousePressPosition));
 }
 
 void MainWidget::mouseReleaseEvent(QMouseEvent *e)
@@ -158,7 +169,7 @@ void MainWidget::initializeGL()
 //! [2]
 
     geometries = new Terrain(20, 20);
-    megaman = new Megaman("../HMIN317-Projet/megaman.png", QVector2D(-0.5, -0.5));
+    megaman = new Megaman("../HMIN317-Projet/megaman.png", QVector2D(2, 2));
 
     // Use QBasicTimer because its faster than QTimer
     timer.start(10, this);
@@ -243,16 +254,13 @@ void MainWidget::paintGL()
     program.setUniformValue("texture", 1);
     megaman->draw(&program);
 
-
 //! [6]
     // Calculate model view transformation
-    QMatrix4x4 matrix;
-    // Uncomment this to be able to move with the mouse
-    //matrix.translate(cam[0], cam[1], cam[2]);
+    model = QMatrix4x4();
     // So that Y+ is upwards and the images are on their head...
-    matrix.rotate(180, 0, 0, 1);
-    matrix.translate(0, 0, -20.0f);
+    //model.rotate(180, 0, 0, 1);
+    model.translate(cam[0], cam[1], cam[2]);
 
     // Set modelview-projection matrix
-    program.setUniformValue("mvp_matrix", projection * matrix);
+    program.setUniformValue("mvp_matrix", projection * model);
 }
